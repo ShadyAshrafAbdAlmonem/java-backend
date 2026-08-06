@@ -1,65 +1,64 @@
 public class Customer {
-    private int id;
-    private String name;
-    private String phone;
-    private int rentedCarId;
-    private int numberOfRentedDays;
-    private double totalPaid;
+    private final int customerId;
+    private final String fullName;
+    private final String nationalId;
+    private String phoneNumber;
+    private CustomerTier tier;
+    private int accountCount;
 
-    private static int customerCount = 0;
-
-    public Customer(int id, String name, String phone) {
-        this.id = id;
-        this.name = name;
-        this.phone = phone;
-        this.rentedCarId = -1; 
-        this.numberOfRentedDays = 0;
-        this.totalPaid = 0.0;
-        customerCount++;
+    public Customer(int customerId, String fullName, String nationalId, String phoneNumber, CustomerTier tier) {
+        this.customerId = customerId;
+        this.fullName = fullName;
+        this.nationalId = nationalId;
+        this.phoneNumber = phoneNumber;
+        this.tier = tier;
+        this.accountCount = 0;
     }
 
-    public void rentCar(int carId, int days, double amountPaid) {
-        this.rentedCarId = carId;
-        this.numberOfRentedDays = days;
-        this.totalPaid += amountPaid;
+    public int getCustomerId() {
+        return customerId;
     }
 
-    public void returnCar() {
-        this.rentedCarId = -1;
-        this.numberOfRentedDays = 0;
+    public String getFullName() {
+        return fullName;
     }
 
-    public int getId() {
-        return this.id;
+    public String getNationalId() {
+        return nationalId;
     }
 
-    public String getName() {
-        return this.name;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public String getPhone() {
-        return this.phone;
+    public CustomerTier getTier() {
+        return tier;
     }
 
-    public int getRentedCarId() {
-        return this.rentedCarId;
+    public int getAccountCount() {
+        return accountCount;
     }
 
-    public int getNumberOfRentedDays() {
-        return this.numberOfRentedDays;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public double getTotalPaid() {
-        return this.totalPaid;
+    public void setTier(CustomerTier tier) {
+        this.tier = tier;
     }
 
-    public static int getCustomerCount() {
-        return customerCount;
+    public void incrementAccountCount() {
+        this.accountCount++;
     }
 
-    public String getDetails() {
-        String status = (rentedCarId == -1) ? "None" : "Car ID " + rentedCarId + " (" + numberOfRentedDays + " days)";
-        return String.format("Customer ID: %d | Name: %s | Phone: %s | Rented Car: %s | Total Paid: $%.2f",
-                this.id, this.name, this.phone, status, this.totalPaid);
+    public void decrementAccountCount() {
+        if (this.accountCount > 0)
+            this.accountCount--;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ID: %d | Name: %s | National ID: %s | Phone: %s | Tier: %s | Accounts Owned: %d",
+                customerId, fullName, nationalId, (phoneNumber.isEmpty() ? "N/A" : phoneNumber), tier, accountCount);
     }
 }
