@@ -1,11 +1,10 @@
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Order {
     private int orderId;
     private String customerName;
-    private ArrayList<OrderItem> items;
+    private List<CartItem> items;
     private double total;
     private OrderStatus status;
 
@@ -17,16 +16,22 @@ public class Order {
         this.status = OrderStatus.PENDING;
     }
 
-    public void addItem(OrderItem item) {
-        if (item != null && item.getQuantity() > 0) {
-            items.add(item);
-            calculateTotal();
+    public void addItem(Product product, int quantity) {
+        for (CartItem item : items) {
+            if (item.getProduct().getId() == product.getId()) {
+                item.setQuantity(item.getQuantity() + quantity);
+                calculateTotal();
+                return;
+            }
         }
+
+        items.add(new CartItem(product, quantity));
+        calculateTotal();
     }
 
-    public boolean removeItem(int menuItemId) {
+    public boolean removeItem(int productId) {
         for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).getItem().getId() == menuItemId) {
+            if (items.get(i).getProduct().getId() == productId) {
                 items.remove(i);
                 calculateTotal();
                 return true;
@@ -36,81 +41,60 @@ public class Order {
     }
 
     public void calculateTotal() {
-        total = 0.0;
-        for (OrderItem item : items) {
+        total = 0;
+        for (CartItem item : items) {
             total += item.calculateSubtotal();
         }
     }
 
     public void displayOrder() {
-        System.out.println("\n=== Order Details ===");
         System.out.println("Order ID: " + orderId);
         System.out.println("Customer: " + customerName);
         System.out.println("Status: " + status);
-        System.out.println("\nItems:");
-        if (items.isEmpty()) {
-            System.out.println("No items in this order.");
-        } else {
-            for (OrderItem item : items) {
-                System.out.println("  " + item);
-            }
+        System.out.println("Items:");
+        for (CartItem item : items) {
+            System.out.println("  " + item);
         }
         System.out.printf("Total: %.2f%n", total);
-        System.out.println("=====================");
-    }
-
-    public void updateStatus(OrderStatus newStatus) {
-        if (isValidTransition(this.status, newStatus)) {
-            this.status = newStatus;
-        } else {
-            System.out.println("Invalid status transition from " + this.status + " to " + newStatus);
-        }
-    }
-
-    private boolean isValidTransition(OrderStatus current, OrderStatus next) {
-        switch (current) {
-            case PENDING:
-                return next == OrderStatus.IN_KITCHEN || next == OrderStatus.CANCELLED;
-            case IN_KITCHEN:
-                return next == OrderStatus.COMPLETED || next == OrderStatus.CANCELLED;
-            case COMPLETED:
-                return false;
-            case CANCELLED:
-                return false;
-            default:
-                return false;
-        }
     }
 
     public int getOrderId() {
         return orderId;
     }
 
+    public void setOrderId(int orderId) {
+        this.orderId = orderId;
+    }
+
     public String getCustomerName() {
         return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public List<CartItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<CartItem> items) {
+        this.items = items;
     }
 
     public double getTotal() {
         return total;
     }
 
+    public void setTotal(double total) {
+        this.total = total;
+    }
+
     public OrderStatus getStatus() {
         return status;
     }
 
-    public List<OrderItem> getItems() {
-        return Collections.unmodifiableList(items);
-    }
-
-    public void setOrderId(int orderId) {
-        if (orderId > 0) {
-            this.orderId = orderId;
-        }
-    }
-
-    public void setCustomerName(String customerName) {
-        if (customerName != null && !customerName.trim().isEmpty()) {
-            this.customerName = customerName;
-        }
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 }
