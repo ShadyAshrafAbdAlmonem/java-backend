@@ -1,8 +1,11 @@
 import java.util.Comparator;
 
 public class OrderTotalComparator implements Comparator<Order> {
+    private static final Comparator<Order> BY_TOTAL =
+            Comparator.comparingDouble(Order::getTotal);
+
     @Override
     public int compare(Order o1, Order o2) {
-        return Double.compare(o1.getTotal(), o2.getTotal());
+        return BY_TOTAL.compare(o1, o2);
     }
 }

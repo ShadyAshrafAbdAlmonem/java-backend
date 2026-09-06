@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Store {
     private List<Product> productList;
@@ -53,14 +54,8 @@ public class Store {
     }
 
     private void updateCategoryAfterProductRemoval(Product product) {
-        boolean categoryStillExists = false;
-
-        for (Product p : productList) {
-            if (p.getCategory().equals(product.getCategory())) {
-                categoryStillExists = true;
-                break;
-            }
-        }
+        boolean categoryStillExists = productList.stream()
+                .anyMatch(p -> p.getCategory().equals(product.getCategory()));
 
         if (!categoryStillExists) {
             categories.remove(product.getCategory());
@@ -73,18 +68,16 @@ public class Store {
             return;
         }
         System.out.println("All Products:");
-        for (Product product : productList) {
-            System.out.println(product);
-        }
+        productList.forEach(System.out::println);
     }
 
     public void searchProductById(int id) {
-        Product product = productMap.get(id);
-        if (product == null) {
+        Optional<Product> product = Optional.ofNullable(productMap.get(id));
+        if (product.isPresent()) {
+            System.out.println("Product found: " + product.get());
+        } else {
             System.out.println("Error: Product with ID " + id + " not found.");
-            return;
         }
-        System.out.println("Product found: " + product);
     }
 
     public void showAllCategories() {
@@ -93,18 +86,14 @@ public class Store {
             return;
         }
         System.out.println("All Categories:");
-        for (String category : categories) {
-            System.out.println(category);
-        }
+        categories.forEach(System.out::println);
     }
 
     public void displayProductsByPrice() {
-        List<Product> sortedProducts = new ArrayList<>(productList);
-        Collections.sort(sortedProducts); 
         System.out.println("Products by Price (Ascending):");
-        for (Product product : sortedProducts) {
-            System.out.println(product);
-        }
+        productList.stream()
+                .sorted()
+                .forEach(System.out::println);
     }
 
     public void createOrder(int orderId, String customerName) {
@@ -266,50 +255,38 @@ public class Store {
         }
 
         System.out.println("Reviews for Product " + productId + ":");
-        boolean found = false;
-        for (Review review : reviews) {
-            if (review.getProductId() == productId) {
-                System.out.println(review);
-                found = true;
-            }
-        }
+        List<Review> productReviews = reviews.stream()
+                .filter(review -> review.getProductId() == productId)
+                .collect(Collectors.toList());
 
-        if (!found) {
+        if (productReviews.isEmpty()) {
             System.out.println("No reviews found for this product.");
+        } else {
+            productReviews.forEach(System.out::println);
         }
     }
 
     public void removeOutOfStockProducts() {
-        Iterator<Product> iterator = productList.iterator();
-        int removedCount = 0;
+        List<Product> removed = productList.stream()
+                .filter(product -> product.getStockQuantity() == 0)
+                .collect(Collectors.toList());
 
-        while (iterator.hasNext()) {
-            Product product = iterator.next();
+        productList.removeAll(removed);
 
-            if (product.getStockQuantity() == 0) {
+        removed.forEach(product -> {
+            productMap.remove(product.getId());
+            updateCategoryAfterProductRemoval(product);
+        });
 
-                iterator.remove();
-
-                productMap.remove(product.getId());
-
-                updateCategoryAfterProductRemoval(product);
-
-                removedCount++;
-            }
-        }
-
-        System.out.println(removedCount + " out-of-stock products removed.");
+        System.out.println(removed.size() + " out-of-stock products removed.");
     }
 
     public void displayOrdersByTotal() {
-        List<Order> sortedOrders = new ArrayList<>(orderMap.values());
-        Collections.sort(sortedOrders, new OrderTotalComparator());
-
         System.out.println("Orders by Total (Ascending):");
-        for (Order order : sortedOrders) {
-            System.out.printf("Order ID: %d, Customer: %s, Total: %.2f%n",
-                    order.getOrderId(), order.getCustomerName(), order.getTotal());
-        }
+        orderMap.values().stream()
+                .sorted(new OrderTotalComparator())
+                .forEach(order -> System.out.printf("Order ID: %d, Customer: %s, Total: %.2f%n",
+                        order.getOrderId(), order.getCustomerName(), order.getTotal()));
     }
 
     public List<Product> getProductList() {

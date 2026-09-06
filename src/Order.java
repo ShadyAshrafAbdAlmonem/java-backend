@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Order {
     private int orderId;
@@ -17,34 +18,30 @@ public class Order {
     }
 
     public void addItem(Product product, int quantity) {
-        for (CartItem item : items) {
-            if (item.getProduct().getId() == product.getId()) {
-                item.setQuantity(item.getQuantity() + quantity);
-                calculateTotal();
-                return;
-            }
-        }
+        Optional<CartItem> existing = items.stream()
+                .filter(item -> item.getProduct().getId() == product.getId())
+                .findFirst();
 
-        items.add(new CartItem(product, quantity));
+        if (existing.isPresent()) {
+            existing.get().setQuantity(existing.get().getQuantity() + quantity);
+        } else {
+            items.add(new CartItem(product, quantity));
+        }
         calculateTotal();
     }
 
     public boolean removeItem(int productId) {
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).getProduct().getId() == productId) {
-                items.remove(i);
-                calculateTotal();
-                return true;
-            }
+        boolean removed = items.removeIf(item -> item.getProduct().getId() == productId);
+        if (removed) {
+            calculateTotal();
         }
-        return false;
+        return removed;
     }
 
     public void calculateTotal() {
-        total = 0;
-        for (CartItem item : items) {
-            total += item.calculateSubtotal();
-        }
+        total = items.stream()
+                .mapToDouble(CartItem::calculateSubtotal)
+                .sum();
     }
 
     public void displayOrder() {
@@ -52,9 +49,7 @@ public class Order {
         System.out.println("Customer: " + customerName);
         System.out.println("Status: " + status);
         System.out.println("Items:");
-        for (CartItem item : items) {
-            System.out.println("  " + item);
-        }
+        items.forEach(item -> System.out.println("  " + item));
         System.out.printf("Total: %.2f%n", total);
     }
 
